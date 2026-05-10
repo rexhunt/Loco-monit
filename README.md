@@ -1,6 +1,17 @@
 # Loco-monit
 Monitor Loco operating parameters
 
+# Project sub sections
+- Local data collection
+  - Data comms (CAN?)
+  - Collection devices
+- Data display
+  - UX
+  - Data storage
+- Inter-loco comms
+  - Wireless
+  - Mesh or broadcast?
+
 # Outcomes
 ## Core outcomes:
 - Read local engine parameters in cab

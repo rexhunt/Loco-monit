@@ -27,13 +27,20 @@ Monitor Loco operating parameters
   - Load Reostat
   - Generator Current
   - MU signals
+  - Traction Motor currents
+
 
 ## Stretch Outcomes:
 - Online datalogging
   - Live uploading?
 - Bluetooth connection to phone for larger readout
 - Compatibility with railmotors, etc.
+- Vigo option 
+  - Separate module?
+  - Connect to circuitlink for logging/vigo?
+- Vigo tasklinking
 - Filtering to exclude locos not in consist
 - Parameters:
   - Gen Voltage
   - Air pressures
+  - Hydraulic pressure for fan and compressor on 47 class

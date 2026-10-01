@@ -11,6 +11,6 @@ Voltage to be determined, 12V is probably more compatible with sensors but 24V s
 
 List of device types:
 - display
-- Power module
+- Power supply module
 - temp sensor (1 input)
 - MU sensor (multiple pickups)

@@ -13,4 +13,5 @@ List of device types:
 - display
 - Power supply module
 - temp sensor (1 input)
+- Oil Pressure Monitor
 - MU sensor (multiple pickups)

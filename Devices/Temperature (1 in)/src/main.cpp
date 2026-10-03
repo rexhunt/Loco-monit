@@ -1,12 +1,12 @@
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h> //Control multicolour LED on board
-#include <CAN.h>          //Can library for TJA1050
+#include <driver/twai.h>       //CAN Stuff
 
 #define PIN_NEOPIXEL 8  // Change this to your board's NeoPixel pin (e.g., 48 on some ESP32-S3 boards)
 #define NUM_PIXELS 1     // Number of LEDs
 
-#define TX_GPIO_NUM 5   //GPIO pin connected to CAN Transciever TX Pin
-#define RX_GPIO_NUM 4   //GPIO pin connected to CAN Transciever RX Pin
+#define TX_GPIO 5   //GPIO pin connected to CAN Transciever TX Pin
+#define RX_GPIO 4   //GPIO pin connected to CAN Transciever RX Pin
 
 Adafruit_NeoPixel pixels(NUM_PIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
@@ -98,11 +98,20 @@ void setup() {
       0); /* Core where the task should run */
   
   //Set up CAN Bus
-  CAN.setPins (RX_GPIO_NUM, TX_GPIO_NUM);
-  // Start CAN bus at 500 kbps
-  if (!CAN.begin(500E3)) {
-    Serial.println("Starting CAN failed!");
-    while (1);
+  // Configure TWAI driver for 500 kbps (standard automotive)
+  twai_general_config_t g_config =
+    TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)TX_GPIO,
+                                (gpio_num_t)RX_GPIO,
+                                TWAI_MODE_NORMAL);
+  twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
+  twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
+
+  if (twai_driver_install(&g_config, &t_config, &f_config) == ESP_OK) {
+    Serial.println("TWAI driver installed");
+  }
+  if (twai_start() == ESP_OK) {
+    Serial.println("TWAI driver started");
+  }
   
   //Set initial LED Colour indicating setup is finished
   uint8_t colour = 10;
@@ -134,13 +143,20 @@ void loop() {
   // send packet: id is 11 bits (0xFFF), packet can contain up to 8 bytes of data
   Serial.print("Sending packet ... ");
 
-  CAN.beginPacket(0x12);
-  CAN.write('h');
-  CAN.write('e');
-  CAN.write('l');
-  CAN.write('l');
-  CAN.write('o');
-  CAN.endPacket();
+  twai_message_t message;
+  message.identifier = 0x540; // Standard 11-bit CAN ID
+  message.data_length_code = 4; // Data length (4 bytes)
+  message.data[0] = 0xDE;
+  message.data[1] = 0xAD;
+  message.data[2] = 0xBE;
+  message.data[3] = 0xEF;
+
+  // Queue message for transmission
+  if (twai_transmit(&message, pdMS_TO_TICKS(1000)) == ESP_OK) {
+    Serial.println("Message queued for transmission");
+  } else {
+    Serial.println("Failed to queue message");
+  }
 
   Serial.println("done");
   delay(1000);

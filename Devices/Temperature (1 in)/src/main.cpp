@@ -48,10 +48,10 @@ void LED_Code(void * parameter) {
     // Control the LED here
     pixels.setPixelColor(0, pixels.Color(red, green, blue)); // Set pixel to colour
     pixels.show();   // Send the updated color to the hardware
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(20 / portTICK_PERIOD_MS);
     pixels.setPixelColor(0, pixels.Color(0, 0, 0)); // Turn pixel off
     pixels.show();   // Send the updated color
-    vTaskDelay(1000 / portTICK_PERIOD_MS); 
+    vTaskDelay(20 / portTICK_PERIOD_MS); 
   }
 }
 
@@ -142,19 +142,23 @@ void loop() {
   message.data[3] = 0xEF;
 
   // Queue message for transmission
+  uint8_t colour = 10;
+  xQueueOverwrite(LGreen, &colour);
   if (twai_transmit(&message, pdMS_TO_TICKS(1000)) == ESP_OK) {
     Serial.println("Message queued for transmission");
   } else {
-    uint8_t colour = 10;
     xQueueOverwrite(LRed, &colour);
     Serial.println("Failed to queue message");
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    delay(500);
     colour = 0;
     xQueueOverwrite(LRed, &colour);
   }
+  delay(200);
+  colour = 0;
+  xQueueOverwrite(LGreen, &colour);
 
   
-  vTaskDelay(5000 / portTICK_PERIOD_MS);
+  delay(1000);
 }
 
 // put function definitions here:

@@ -24,6 +24,9 @@ QueueHandle_t LRed = NULL;
 QueueHandle_t LGreen = NULL;
 QueueHandle_t LBlue = NULL;
 
+//Function declerations:
+void CAN_TX(uint8_t length, uint16_t ident, uint8_t data[]);
+
 void LED_Code(void * parameter) {
   //Declare variables
   uint8_t red, green, blue = 0;
@@ -133,6 +136,15 @@ void loop() {
   }
 
   //Send regular CAN packet with
+  uint8_t data[] (0xDE, 0xAD, 0xBE, 0xEF);
+  CAN_TX(4, 0x540, data);
+
+  
+  delay(1000);
+}
+
+// put function definitions here:
+void CAN_TX(uint8_t length, uint16_t ident, uint8_t data[]){
   twai_message_t message;
   message.identifier = 0x540; // Standard 11-bit CAN ID
   message.data_length_code = 4; // Data length (4 bytes)
@@ -156,9 +168,4 @@ void loop() {
   delay(200);
   colour = 0;
   xQueueOverwrite(LGreen, &colour);
-
-  
-  delay(1000);
 }
-
-// put function definitions here:

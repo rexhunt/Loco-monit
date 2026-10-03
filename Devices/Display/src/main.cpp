@@ -24,6 +24,9 @@ QueueHandle_t LRed = NULL;
 QueueHandle_t LGreen = NULL;
 QueueHandle_t LBlue = NULL;
 
+//Create array for recieved data
+uint8_t states[4095][8];
+
 void LED_Code(void * parameter) {
   //Declare variables
   uint8_t red, green, blue = 0;
@@ -133,7 +136,7 @@ void loop() {
   }
 
   twai_message_t response;
-  uint8_t data[8], length;
+  uint8_t length;
   uint16_t ident;
   if (twai_receive(&response, pdMS_TO_TICKS(100)) == ESP_OK) {
       //Process packet from CAN bus
@@ -141,8 +144,8 @@ void loop() {
       length = response.data_length_code;
       Serial.printf("Packet id: 0x%X, and Length: %u Data: ", ident, length);
       for (int i = 0; i < length; i++) {
-        data[i] = response.data[i];
-        Serial.printf("0x%X, ", data[i]);
+        states[ident][i] = response.data[i];
+        Serial.printf("0x%X, ", states[ident][i]);
       }
       Serial.println();
   }

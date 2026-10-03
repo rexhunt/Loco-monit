@@ -142,13 +142,10 @@ void loop() {
       Serial.printf("Packet id: 0x%X, and Length: %u Data: ", ident, length);
       for (int i = 0; i < length; i++) {
         data[i] = response.data[i];
-        Serial.print(data[i]);
-        Serial.print(", ");
+        Serial.printf("0x%X, ", data[i]);
       }
       Serial.println();
   }
-
-  delay(1000);
 }
 
 // put function definitions here:

@@ -1,8 +1,12 @@
 #include <Arduino.h>
-#include <Adafruit_NeoPixel.h>
+#include <Adafruit_NeoPixel.h> //Control multicolour LED on board
+#include <driver/twai.h>       //CAN Stuff
 
 #define PIN_NEOPIXEL 8  // Change this to your board's NeoPixel pin (e.g., 48 on some ESP32-S3 boards)
 #define NUM_PIXELS 1     // Number of LEDs
+
+#define TX_GPIO 5   //GPIO pin connected to CAN Transciever TX Pin
+#define RX_GPIO 4   //GPIO pin connected to CAN Transciever RX Pin
 
 Adafruit_NeoPixel pixels(NUM_PIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
@@ -16,14 +20,12 @@ uint8_t button = BOOT_PIN;
 TaskHandle_t LED_h;
 
 //Create handles for Queues
-QueueHandle_t LCount = NULL;
 QueueHandle_t LRed = NULL;
 QueueHandle_t LGreen = NULL;
 QueueHandle_t LBlue = NULL;
 
 void LED_Code(void * parameter) {
   //Declare variables
-  int counter = 0;
   uint8_t red, green, blue = 0;
   Serial.println("LED Loop initialized");
 
@@ -46,14 +48,10 @@ void LED_Code(void * parameter) {
     // Control the LED here
     pixels.setPixelColor(0, pixels.Color(red, green, blue)); // Set pixel to colour
     pixels.show();   // Send the updated color to the hardware
-    vTaskDelay(500 / portTICK_PERIOD_MS);
+    vTaskDelay(20 / portTICK_PERIOD_MS);
     pixels.setPixelColor(0, pixels.Color(0, 0, 0)); // Turn pixel off
     pixels.show();   // Send the updated color
-    vTaskDelay(1000 / portTICK_PERIOD_MS); 
-
-    //Increment counter and update queue
-    counter = counter + 1;
-    xQueueSend(LCount, &counter, portMAX_DELAY);
+    vTaskDelay(20 / portTICK_PERIOD_MS); 
   }
 }
 
@@ -74,11 +72,10 @@ void setup() {
   pixels.begin();
   
   //Create queues for inter task comms
-  LCount = xQueueCreate(5, sizeof(int)); //queuesize of 5, not sure what this should be set to
   LRed = xQueueCreate(1, sizeof(uint8_t)); 
   LGreen = xQueueCreate(1, sizeof(uint8_t)); // Colour queues are only 1 long, more like global variable than FIFO queue, use peek to leave value intact
   LBlue = xQueueCreate(1, sizeof(uint8_t)); 
-  if (LCount == NULL && LRed == NULL && LGreen == NULL && LBlue == NULL) {
+  if (LRed == NULL && LGreen == NULL && LBlue == NULL) {
     Serial.println("Failed to create queue!");
     while (1);
   }
@@ -93,7 +90,23 @@ void setup() {
       &LED_h,  /* Task handle. */
       0); /* Core where the task should run */
   
-  //Set initial LED Colour
+  //Set up CAN Bus
+  // Configure TWAI driver for 500 kbps (standard automotive)
+  twai_general_config_t g_config =
+    TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)TX_GPIO,
+                                (gpio_num_t)RX_GPIO,
+                                TWAI_MODE_NORMAL); //MODE_NO_ACK for testing, rather than MODE_NORMAL
+  twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
+  twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
+
+  if (twai_driver_install(&g_config, &t_config, &f_config) == ESP_OK) {
+    Serial.println("TWAI driver installed");
+  }
+  if (twai_start() == ESP_OK) {
+    Serial.println("TWAI driver started");
+  }
+  
+  //Set initial LED Colour indicating setup is finished
   uint8_t colour = 10;
   xQueueOverwrite(LBlue, &colour);
 
@@ -102,18 +115,6 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-
-  //Get the number of cycles the LED has flashed
-  int counts;
-  if (xQueueReceive(LCount, &counts, 0)){ //portMAX_DELAY will hold up loop until the queue is updated
-    Serial.print(counts);
-    Serial.println(" LED Flash Count");
-    //Make the green LED change brightness
-    xQueueOverwrite(LGreen, &counts);
-    //delay(500); //Replaced by delay at end of loop 
-    //Update zigbee level to number of counts
-    //zbAnalog.setAnalogInput(counts);
-  }
 
   // Checking button for factory reset and reporting
   if (digitalRead(button) == LOW) {  // Push button pressed
@@ -130,6 +131,52 @@ void loop() {
       }
     }
   }
+
+  //Send regular CAN packet with
+  twai_message_t message;
+  message.identifier = 0x540; // Standard 11-bit CAN ID
+  message.data_length_code = 4; // Data length (4 bytes)
+  message.data[0] = 0xDE;
+  message.data[1] = 0xAD;
+  message.data[2] = 0xBE;
+  message.data[3] = 0xEF;
+
+  // Queue message for transmission
+  uint8_t colour = 10;
+  xQueueOverwrite(LGreen, &colour);
+  if (twai_transmit(&message, pdMS_TO_TICKS(1000)) == ESP_OK) {
+    Serial.println("Message queued for transmission");
+  } else {
+    xQueueOverwrite(LRed, &colour);
+    Serial.println("Failed to queue message");
+    delay(500);
+    colour = 0;
+    xQueueOverwrite(LRed, &colour);
+  }
+  delay(200);
+  colour = 0;
+  xQueueOverwrite(LGreen, &colour);
+
+  twai_message_t response;
+  uint8_t data[8], length;
+  uint16_t ident;
+  if (twai_receive(&response, pdMS_TO_TICKS(100)) == ESP_OK) {
+      //Process packet from CAN bus
+      Serial.print("packet recieved with identifier: ");
+      ident = response.identifier;
+      length = response.data_length_code;
+      Serial.print(ident);
+      Serial.print(" Data: ");
+      for (int i = 0; i < length; i++) {
+        data[i] = response.data[i];
+        Serial.print(data[i]);
+        Serial.print(", ");
+        i = i +1;
+      }
+      Serial.println();
+  }
+
+  delay(1000);
 }
 
 // put function definitions here:

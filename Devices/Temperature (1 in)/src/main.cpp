@@ -20,14 +20,12 @@ uint8_t button = BOOT_PIN;
 TaskHandle_t LED_h;
 
 //Create handles for Queues
-QueueHandle_t LCount = NULL;
 QueueHandle_t LRed = NULL;
 QueueHandle_t LGreen = NULL;
 QueueHandle_t LBlue = NULL;
 
 void LED_Code(void * parameter) {
   //Declare variables
-  int counter = 0;
   uint8_t red, green, blue = 0;
   Serial.println("LED Loop initialized");
 
@@ -54,10 +52,6 @@ void LED_Code(void * parameter) {
     pixels.setPixelColor(0, pixels.Color(0, 0, 0)); // Turn pixel off
     pixels.show();   // Send the updated color
     vTaskDelay(1000 / portTICK_PERIOD_MS); 
-
-    //Increment counter and update queue
-    counter = counter + 1;
-    xQueueSend(LCount, &counter, portMAX_DELAY);
   }
 }
 
@@ -78,11 +72,10 @@ void setup() {
   pixels.begin();
   
   //Create queues for inter task comms
-  LCount = xQueueCreate(5, sizeof(int)); //queuesize of 5, not sure what this should be set to
   LRed = xQueueCreate(1, sizeof(uint8_t)); 
   LGreen = xQueueCreate(1, sizeof(uint8_t)); // Colour queues are only 1 long, more like global variable than FIFO queue, use peek to leave value intact
   LBlue = xQueueCreate(1, sizeof(uint8_t)); 
-  if (LCount == NULL && LRed == NULL && LGreen == NULL && LBlue == NULL) {
+  if (LRed == NULL && LGreen == NULL && LBlue == NULL) {
     Serial.println("Failed to create queue!");
     while (1);
   }

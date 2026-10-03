@@ -137,16 +137,13 @@ void loop() {
   uint16_t ident;
   if (twai_receive(&response, pdMS_TO_TICKS(100)) == ESP_OK) {
       //Process packet from CAN bus
-      Serial.print("packet recieved with identifier: ");
       ident = response.identifier;
       length = response.data_length_code;
-      Serial.print(ident);
-      Serial.print(" Data: ");
+      Serial.printf("Packet id: 0x%X, and Length: %u Data: ", ident, length);
       for (int i = 0; i < length; i++) {
         data[i] = response.data[i];
         Serial.print(data[i]);
         Serial.print(", ");
-        i = i +1;
       }
       Serial.println();
   }

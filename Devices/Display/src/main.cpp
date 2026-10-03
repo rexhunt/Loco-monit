@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h> //Control multicolour LED on board
 #include <driver/twai.h>       //CAN Stuff
+#include <esp_task_wdt.h>      //Watchdog
 
 #define PIN_NEOPIXEL 8  // Change this to your board's NeoPixel pin (e.g., 48 on some ESP32-S3 boards)
 #define NUM_PIXELS 1     // Number of LEDs
@@ -108,6 +109,15 @@ void setup() {
   if (twai_start() == ESP_OK) {
     Serial.println("TWAI driver started");
   }
+
+  Serial.println("Configuring WDT...");
+  esp_task_wdt_config_t wdt_config = {
+    .timeout_ms = 5000,     // Timeout set to 5000 ms (5 seconds)
+    .idle_core_mask = (1 << portNUM_PROCESSORS) - 1, // Monitor idle tasks on all cores
+    .trigger_panic = true   // Panic/Reset the ESP32 if triggered
+  };
+  esp_task_wdt_init(&wdt_config); // Enable panic, ESP32 auto-restarts on WDT timeout
+  esp_task_wdt_add(NULL); // Add the current thread 
   
   //Set initial LED Colour indicating setup is finished
   uint8_t colour = 10;
@@ -149,6 +159,7 @@ void loop() {
       }
       Serial.println();
   }
+  esp_task_wdt_reset(); // Feed watchdog timer
 }
 
 // put function definitions here:

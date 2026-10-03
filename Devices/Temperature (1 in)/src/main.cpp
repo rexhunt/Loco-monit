@@ -102,7 +102,7 @@ void setup() {
   twai_general_config_t g_config =
     TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)TX_GPIO,
                                 (gpio_num_t)RX_GPIO,
-                                TWAI_MODE_NORMAL);
+                                TWAI_MODE_NORMAL); //MODE_NO_ACK for testing, rather than MODE_NORMAL
   twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
   twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
@@ -139,10 +139,7 @@ void loop() {
     }
   }
 
-  //Send regular CAN packet with id= 0x12
-  // send packet: id is 11 bits (0xFFF), packet can contain up to 8 bytes of data
-  Serial.print("Sending packet ... ");
-
+  //Send regular CAN packet with
   twai_message_t message;
   message.identifier = 0x540; // Standard 11-bit CAN ID
   message.data_length_code = 4; // Data length (4 bytes)
@@ -155,11 +152,16 @@ void loop() {
   if (twai_transmit(&message, pdMS_TO_TICKS(1000)) == ESP_OK) {
     Serial.println("Message queued for transmission");
   } else {
+    uint8_t colour = 10;
+    xQueueOverwrite(LRed, &colour);
     Serial.println("Failed to queue message");
+    vTaskDelay(500 / portTICK_PERIOD_MS);
+    colour = 0;
+    xQueueOverwrite(LRed, &colour);
   }
 
-  Serial.println("done");
-  delay(1000);
+  
+  vTaskDelay(5000 / portTICK_PERIOD_MS);
 }
 
 // put function definitions here:

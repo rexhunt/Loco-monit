@@ -93,7 +93,7 @@ void setup() {
       &LED_h,  /* Task handle. */
       0); /* Core where the task should run */
   
-  //Set initial LED Colour
+  //Set initial LED Colour indicating setup is finished
   uint8_t colour = 10;
   xQueueOverwrite(LBlue, &colour);
 
@@ -102,18 +102,6 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-
-  //Get the number of cycles the LED has flashed
-  int counts;
-  if (xQueueReceive(LCount, &counts, 0)){ //portMAX_DELAY will hold up loop until the queue is updated
-    Serial.print(counts);
-    Serial.println(" LED Flash Count");
-    //Make the green LED change brightness
-    xQueueOverwrite(LGreen, &counts);
-    //delay(500); //Replaced by delay at end of loop 
-    //Update zigbee level to number of counts
-    //zbAnalog.setAnalogInput(counts);
-  }
 
   // Checking button for factory reset and reporting
   if (digitalRead(button) == LOW) {  // Push button pressed
@@ -130,6 +118,7 @@ void loop() {
       }
     }
   }
+
 }
 
 // put function definitions here:

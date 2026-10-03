@@ -137,7 +137,8 @@ void loop() {
 
   //Send regular CAN packet with
   uint8_t data[] (0xDE, 0xAD, 0xBE, 0xEF);
-  CAN_TX(4, 0x540, data);
+  data[4] = data[4] + 1;
+  CAN_TX(5, 0x540, data);
 
   
   delay(1000);
@@ -146,12 +147,11 @@ void loop() {
 // put function definitions here:
 void CAN_TX(uint8_t length, uint16_t ident, uint8_t data[]){
   twai_message_t message;
-  message.identifier = 0x540; // Standard 11-bit CAN ID
-  message.data_length_code = 4; // Data length (4 bytes)
-  message.data[0] = 0xDE;
-  message.data[1] = 0xAD;
-  message.data[2] = 0xBE;
-  message.data[3] = 0xEF;
+  message.identifier = ident; // Standard 11-bit CAN ID
+  message.data_length_code = length; // Data length (4 bytes)
+  for (int i = 0; i < length; i++){
+    message.data[i] = data[i];
+  }
 
   // Queue message for transmission
   uint8_t colour = 10;

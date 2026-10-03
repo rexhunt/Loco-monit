@@ -1,8 +1,12 @@
 #include <Arduino.h>
-#include <Adafruit_NeoPixel.h>
+#include <Adafruit_NeoPixel.h> //Control multicolour LED on board
+#include <CAN.h>          //Can library for TJA1050
 
 #define PIN_NEOPIXEL 8  // Change this to your board's NeoPixel pin (e.g., 48 on some ESP32-S3 boards)
 #define NUM_PIXELS 1     // Number of LEDs
+
+#define TX_GPIO_NUM 5   //GPIO pin connected to CAN Transciever TX Pin
+#define RX_GPIO_NUM 4   //GPIO pin connected to CAN Transciever RX Pin
 
 Adafruit_NeoPixel pixels(NUM_PIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
@@ -93,6 +97,13 @@ void setup() {
       &LED_h,  /* Task handle. */
       0); /* Core where the task should run */
   
+  //Set up CAN Bus
+  CAN.setPins (RX_GPIO_NUM, TX_GPIO_NUM);
+  // Start CAN bus at 500 kbps
+  if (!CAN.begin(500E3)) {
+    Serial.println("Starting CAN failed!");
+    while (1);
+  
   //Set initial LED Colour indicating setup is finished
   uint8_t colour = 10;
   xQueueOverwrite(LBlue, &colour);
@@ -119,6 +130,20 @@ void loop() {
     }
   }
 
+  //Send regular CAN packet with id= 0x12
+  // send packet: id is 11 bits (0xFFF), packet can contain up to 8 bytes of data
+  Serial.print("Sending packet ... ");
+
+  CAN.beginPacket(0x12);
+  CAN.write('h');
+  CAN.write('e');
+  CAN.write('l');
+  CAN.write('l');
+  CAN.write('o');
+  CAN.endPacket();
+
+  Serial.println("done");
+  delay(1000);
 }
 
 // put function definitions here:

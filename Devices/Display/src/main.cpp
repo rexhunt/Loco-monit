@@ -132,31 +132,6 @@ void loop() {
     }
   }
 
-  //Send regular CAN packet with
-  twai_message_t message;
-  message.identifier = 0x540; // Standard 11-bit CAN ID
-  message.data_length_code = 4; // Data length (4 bytes)
-  message.data[0] = 0xDE;
-  message.data[1] = 0xAD;
-  message.data[2] = 0xBE;
-  message.data[3] = 0xEF;
-
-  // Queue message for transmission
-  uint8_t colour = 10;
-  xQueueOverwrite(LGreen, &colour);
-  if (twai_transmit(&message, pdMS_TO_TICKS(1000)) == ESP_OK) {
-    Serial.println("Message queued for transmission");
-  } else {
-    xQueueOverwrite(LRed, &colour);
-    Serial.println("Failed to queue message");
-    delay(500);
-    colour = 0;
-    xQueueOverwrite(LRed, &colour);
-  }
-  delay(200);
-  colour = 0;
-  xQueueOverwrite(LGreen, &colour);
-
   twai_message_t response;
   uint8_t data[8], length;
   uint16_t ident;

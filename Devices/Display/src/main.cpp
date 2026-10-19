@@ -2,6 +2,15 @@
 #include <Adafruit_NeoPixel.h> //Control multicolour LED on board
 #include <driver/twai.h>       //CAN Stuff
 #include <esp_task_wdt.h>      //Watchdog
+#include <WiFi.h>              //
+#include <ArduinoOTA.h>        //OTA Updates
+
+// Set up global WIFI details
+#define WIFI_SSID "Loco"
+#define WIFI_PASS "1234Update"
+IPAddress local_IP(10, 0, 20, 2);
+IPAddress gateway(10, 0, 20, 1);
+IPAddress subnet(255, 0, 0, 0);
 
 #define PIN_NEOPIXEL 8  // Change this to your board's NeoPixel pin (e.g., 48 on some ESP32-S3 boards)
 #define NUM_PIXELS 1     // Number of LEDs
@@ -72,6 +81,7 @@ void setLED(bool value) {
 
 // put function declarations here:
 void canRecieve(void * parameter);
+void WiFiSetup(void);
 
 void setup() {
   // put your setup code here, to run once:
@@ -88,6 +98,9 @@ void setup() {
     Serial.println("Failed to create queue!");
     while (1);
   }
+
+  //Connect to WiFi if available
+  WiFiSetup();
 
   //Create task for controlling the LED
   xTaskCreatePinnedToCore(
@@ -127,7 +140,8 @@ void setup() {
 
   Serial.println("Configuring WDT...");
   esp_task_wdt_config_t wdt_config = {
-    .timeout_ms = 5000,     // Timeout set to 5000 ms (5 seconds)
+    //.timeout_ms = 5000,     // Timeout set to 5000 ms (5 seconds)
+    .timeout_ms = 50000,     // Timeout set to 5000 ms (5 seconds)
     .idle_core_mask = (1 << portNUM_PROCESSORS) - 1, // Monitor idle tasks on all cores
     .trigger_panic = true   // Panic/Reset the ESP32 if triggered
   };
@@ -173,6 +187,9 @@ void loop() {
   
   loopTime = millis();
 
+  //Look for OTA
+  ArduinoOTA.handle();
+
   delay(50);
 
   esp_task_wdt_reset(); // Feed watchdog timer
@@ -200,4 +217,24 @@ void canRecieve(void * parameter){
         Serial.println();
     }
   }
+}
+
+void WiFiSetup(void){
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  Serial.print("Connecting to WiFi ..");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print('.');
+    delay(1000);
+  }
+  // Configures static IP address
+  if (!WiFi.config(local_IP, gateway, subnet)) {
+    Serial.println("STA Failed to configure");
+  }
+  Serial.println(WiFi.localIP());
+
+  // OTA Configiration and Enable OTA
+  Serial.println("\nEnabling OTA Feature");
+  ArduinoOTA.setPassword("lonelybinary");
+  ArduinoOTA.begin();
 }

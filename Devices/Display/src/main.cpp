@@ -14,11 +14,15 @@ Adafruit_NeoPixel pixels(NUM_PIXELS, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
 uint8_t button = BOOT_PIN;
 
+uint32_t loopTime, loopAverage;
+uint8_t loopCount = 0;
+
 /*Create separate task for controlling Onboard LED
   This allows delay without affecting other parts of loop()
 */
 //Create handles for tasks
 TaskHandle_t LED_h;
+TaskHandle_t CAN_h;
 
 //Create handles for Queues
 QueueHandle_t LRed = NULL;
@@ -67,6 +71,7 @@ void setLED(bool value) {
 }
 
 // put function declarations here:
+void canRecieve(void * parameter);
 
 void setup() {
   // put your setup code here, to run once:
@@ -92,6 +97,16 @@ void setup() {
       NULL,  /* Task input parameter */
       0,  /* Priority of the task */
       &LED_h,  /* Task handle. */
+      0); /* Core where the task should run */
+  
+  //Create task for Listening to CAN
+  xTaskCreatePinnedToCore(
+      canRecieve, /* Function to implement the task */
+      "CAN", /* Name of the task */
+      10000,  /* Stack size in words */
+      NULL,  /* Task input parameter */
+      0,  /* Priority of the task */
+      &CAN_h,  /* Task handle. */
       0); /* Core where the task should run */
   
   //Set up CAN Bus
@@ -145,21 +160,44 @@ void loop() {
     }
   }
 
-  twai_message_t response;
-  uint8_t length;
-  uint16_t ident;
-  if (twai_receive(&response, pdMS_TO_TICKS(100)) == ESP_OK) {
-      //Process packet from CAN bus
-      ident = response.identifier;
-      length = response.data_length_code;
-      Serial.printf("Packet id: 0x%X, and Length: %u Data: ", ident, length);
-      for (int i = 0; i < length; i++) {
-        states[ident][i] = response.data[i];
-        Serial.printf("0x%X, ", states[ident][i]);
-      }
-      Serial.println();
+
+
+  // Check how long to run loop, less is better
+  loopAverage = loopAverage + (millis() - loopTime);
+  loopCount += 1;
+  if (loopCount == 500) {
+    Serial.printf("Average time to run loop %ums\n", loopAverage / loopCount);
+    loopCount = 0;
+    loopAverage = 0;
   }
+  
+  loopTime = millis();
+
+  delay(50);
+
   esp_task_wdt_reset(); // Feed watchdog timer
 }
 
 // put function definitions here:
+
+void canRecieve(void * parameter){
+  twai_message_t response;
+  uint8_t length;
+  uint16_t ident;
+  Serial.println("CAN Loop initialized");
+
+  //Make code loop
+  for(;;){
+    if (twai_receive(&response, pdMS_TO_TICKS(100)) == ESP_OK) {
+        //Process packet from CAN bus
+        ident = response.identifier;
+        length = response.data_length_code;
+        Serial.printf("Packet id: 0x%X, and Length: %u Data: ", ident, length);
+        for (int i = 0; i < length; i++) {
+          states[ident][i] = response.data[i];
+          Serial.printf("0x%X, ", states[ident][i]);
+        }
+        Serial.println();
+    }
+  }
+}

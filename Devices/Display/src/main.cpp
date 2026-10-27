@@ -236,5 +236,23 @@ void WiFiSetup(void){
   // OTA Configiration and Enable OTA
   Serial.println("\nEnabling OTA Feature");
   ArduinoOTA.setPassword("lonelybinary");
+  ArduinoOTA.onStart([]() {
+    Serial.println("Start updating sketch...");
+    esp_task_wdt_delete(NULL);  //Pause watchdog timer during update
+  });
+
+  ArduinoOTA.onEnd([]() {
+    Serial.println("\nEnd update");
+    esp_task_wdt_add(NULL);   //resume watchdog timer after update finished
+  });
+
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+  });
+
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    esp_task_wdt_add(NULL);   //resume watchdog timer after update finished
+  });
   ArduinoOTA.begin();
 }

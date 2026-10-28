@@ -2,6 +2,7 @@
 #include <Adafruit_NeoPixel.h> //Control multicolour LED on board
 #include <driver/twai.h>       //CAN Stuff
 #include <esp_task_wdt.h>      //Watchdog
+#include "mon-OTA.h"  //OTA Functions
 
 #define PIN_NEOPIXEL 8  // Change this to your board's NeoPixel pin (e.g., 48 on some ESP32-S3 boards)
 #define NUM_PIXELS 1     // Number of LEDs
@@ -89,6 +90,9 @@ void setup() {
     while (1);
   }
 
+  //Connect to WiFi if available
+  WiFiSetup();
+
   //Create task for controlling the LED
   xTaskCreatePinnedToCore(
       LED_Code, /* Function to implement the task */
@@ -127,7 +131,8 @@ void setup() {
 
   Serial.println("Configuring WDT...");
   esp_task_wdt_config_t wdt_config = {
-    .timeout_ms = 5000,     // Timeout set to 5000 ms (5 seconds)
+    //.timeout_ms = 5000,     // Timeout set to 5000 ms (5 seconds)
+    .timeout_ms = 50000,     // Timeout set to 5000 ms (5 seconds)
     .idle_core_mask = (1 << portNUM_PROCESSORS) - 1, // Monitor idle tasks on all cores
     .trigger_panic = true   // Panic/Reset the ESP32 if triggered
   };
@@ -173,6 +178,9 @@ void loop() {
   
   loopTime = millis();
 
+  //Look for OTA
+  ArduinoOTA.handle();
+
   delay(50);
 
   esp_task_wdt_reset(); // Feed watchdog timer
@@ -201,3 +209,4 @@ void canRecieve(void * parameter){
     }
   }
 }
+

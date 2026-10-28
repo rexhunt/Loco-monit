@@ -9,7 +9,7 @@
 uint8_t button = BOOT_PIN;
 
 uint32_t loopTime, loopAverage;
-uint8_t loopCount = 0;
+uint16_t loopCount = 0;
 
 //Create handles for tasks
 TaskHandle_t CAN_h;
@@ -53,14 +53,7 @@ void setup() {
     Serial.println("TWAI driver started");
   }
 
-  Serial.println("Configuring WDT...");
-  esp_task_wdt_config_t wdt_config = {
-    //.timeout_ms = 5000,     // Timeout set to 5000 ms (5 seconds)
-    .timeout_ms = 50000,     // Timeout set to 5000 ms (5 seconds)
-    .idle_core_mask = (1 << portNUM_PROCESSORS) - 1, // Monitor idle tasks on all cores
-    .trigger_panic = true   // Panic/Reset the ESP32 if triggered
-  };
-  esp_task_wdt_init(&wdt_config); // Enable panic, ESP32 auto-restarts on WDT timeout
+  Serial.println("Starting WDT on Main task");
   esp_task_wdt_add(NULL); // Add the current thread 
 
   Serial.println("setup() finished");
@@ -90,8 +83,9 @@ void loop() {
   // Check how long to run loop, less is better
   loopAverage = loopAverage + (millis() - loopTime);
   loopCount += 1;
+  //Serial.println(loopAverage);
   if (loopCount == 500) {
-    Serial.printf("Average time to run loop %ums\n", loopAverage / loopCount);
+    Serial.printf("Average time to run loop %lums at %lums\n", loopAverage / loopCount, millis());
     loopCount = 0;
     loopAverage = 0;
   }
@@ -101,7 +95,7 @@ void loop() {
   //Look for OTA
   ArduinoOTA.handle();
 
-  delay(50);
+  delay(5);
 
   esp_task_wdt_reset(); // Feed watchdog timer
 }

@@ -54,7 +54,7 @@ void setup() {
   }
 
   Serial.println("Starting WDT on Main task");
-  esp_task_wdt_add(NULL); // Add the current thread 
+  esp_task_wdt_add(NULL); // Add Watchdog to the current thread 
 
   Serial.println("setup() finished");
 }
@@ -106,10 +106,12 @@ void canRecieve(void * parameter){
   twai_message_t response;
   uint8_t length;
   uint16_t ident;
+  esp_task_wdt_add(NULL); // Add Watchdog to the current thread
   Serial.println("CAN Loop initialized");
 
   //Make code loop
   for(;;){
+    esp_task_wdt_reset(); // Feed watchdog timer
     if (twai_receive(&response, pdMS_TO_TICKS(100)) == ESP_OK) {
         //Process packet from CAN bus
         ident = response.identifier;

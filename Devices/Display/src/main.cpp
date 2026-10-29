@@ -25,9 +25,6 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
 
-  //Connect to WiFi and start OTA if available
-  WiFiSetup();
-
   //Set up display stuff
   GraphicsSetup();
   
@@ -40,8 +37,9 @@ void setup() {
       0,  /* Priority of the task */
       &CAN_h,  /* Task handle. */
       0); /* Core where the task should run */
-  
 
+  //Connect to WiFi and start OTA if available
+  WiFiSetup();
 
   Serial.println("Starting WDT on Main task");
   esp_task_wdt_add(NULL); // Add Watchdog to the current thread 

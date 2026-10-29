@@ -28,6 +28,7 @@ static bool IRAM_ATTR on_rgb_vsync(esp_lcd_panel_handle_t panel,
   return task_woken == pdTRUE;
 }
 
+
 //  Display refresh
 void my_disp_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map) {
   // In DIRECT mode LVGL can report several dirty areas for one frame.  The
@@ -206,4 +207,16 @@ void GraphicsSetup(void){
   ui_init();
 
   Serial.println( "UI Setup done" );
+}
+
+//Functions for handling events, see ui_events.h for delceration
+
+void bl_change(lv_event_t * e)
+{
+	//int32_t brightness = lv_arc_get_value(ui_Arc1);
+    int32_t brightness = lv_slider_get_value(ui_SBacklight);
+    uint8_t percent = 100 - (((uint8_t)brightness * 100) / 245); //Backwards, 100% is minimum
+
+    lv_label_set_text_fmt(ui_VBacklight, "%i %%", percent);
+	sendI2CCommand((uint8_t)brightness);  // 0 is the brightest backlight.    / 245 backlight off   (0-245)
 }

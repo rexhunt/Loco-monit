@@ -71,12 +71,15 @@ void loop() {
   loopCount += 1;
   //Serial.println(loopAverage);
   if (loopCount == 500) {
-    Serial.printf("Average time to run loop %lums at %lums\n", loopAverage / loopCount, millis());
+    loopAverage = loopAverage / loopCount, millis();
+    lv_label_set_text_fmt(ui_VLoopTime, "%li ms", loopAverage);
+    Serial.printf("Average time to run loop %lums at %lums\n", loopAverage);
     loopCount = 0;
     loopAverage = 0;
   }
   
   loopTime = millis();
+  lv_label_set_text_fmt(ui_VMilisTime, "%li ms", loopTime);
 
   //Look for OTA
   ArduinoOTA.handle();

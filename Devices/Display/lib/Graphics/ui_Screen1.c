@@ -10,6 +10,10 @@ lv_obj_t * ui_SBacklight = NULL;
 lv_obj_t * ui_LBacklight = NULL;
 lv_obj_t * ui_Arc1 = NULL;
 lv_obj_t * ui_VBacklight = NULL;
+lv_obj_t * ui_LLoopTime = NULL;
+lv_obj_t * ui_LMilisTime = NULL;
+lv_obj_t * ui_VLoopTime = NULL;
+lv_obj_t * ui_VMilisTime = NULL;
 // event funtions
 void ui_event_SBacklight(lv_event_t * e)
 {
@@ -72,6 +76,46 @@ void ui_Screen1_screen_init(void)
     lv_obj_set_style_text_color(ui_VBacklight, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(ui_VBacklight, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
+    ui_LLoopTime = lv_label_create(ui_Screen1);
+    lv_obj_set_width(ui_LLoopTime, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_LLoopTime, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_LLoopTime, -337);
+    lv_obj_set_y(ui_LLoopTime, -141);
+    lv_obj_set_align(ui_LLoopTime, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_LLoopTime, "Loop Time");
+    lv_obj_set_style_text_color(ui_LLoopTime, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_LLoopTime, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_LMilisTime = lv_label_create(ui_Screen1);
+    lv_obj_set_width(ui_LMilisTime, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_LMilisTime, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_LMilisTime, -247);
+    lv_obj_set_y(ui_LMilisTime, -141);
+    lv_obj_set_align(ui_LMilisTime, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_LMilisTime, "millis Time");
+    lv_obj_set_style_text_color(ui_LMilisTime, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_LMilisTime, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_VLoopTime = lv_label_create(ui_Screen1);
+    lv_obj_set_width(ui_VLoopTime, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_VLoopTime, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_VLoopTime, -358);
+    lv_obj_set_y(ui_VLoopTime, -115);
+    lv_obj_set_align(ui_VLoopTime, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_VLoopTime, "0 ms");
+    lv_obj_set_style_text_color(ui_VLoopTime, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_VLoopTime, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
+    ui_VMilisTime = lv_label_create(ui_Screen1);
+    lv_obj_set_width(ui_VMilisTime, LV_SIZE_CONTENT);   /// 1
+    lv_obj_set_height(ui_VMilisTime, LV_SIZE_CONTENT);    /// 1
+    lv_obj_set_x(ui_VMilisTime, -246);
+    lv_obj_set_y(ui_VMilisTime, -118);
+    lv_obj_set_align(ui_VMilisTime, LV_ALIGN_CENTER);
+    lv_label_set_text(ui_VMilisTime, "0 ms");
+    lv_obj_set_style_text_color(ui_VMilisTime, lv_color_hex(0x808080), LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_obj_set_style_text_opa(ui_VMilisTime, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+
     lv_obj_add_event_cb(ui_SBacklight, ui_event_SBacklight, LV_EVENT_ALL, NULL);
 
 }
@@ -86,5 +130,9 @@ void ui_Screen1_screen_destroy(void)
     ui_LBacklight = NULL;
     ui_Arc1 = NULL;
     ui_VBacklight = NULL;
+    ui_LLoopTime = NULL;
+    ui_LMilisTime = NULL;
+    ui_VLoopTime = NULL;
+    ui_VMilisTime = NULL;
 
 }

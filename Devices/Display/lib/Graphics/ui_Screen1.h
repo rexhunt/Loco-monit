@@ -19,6 +19,10 @@ extern lv_obj_t * ui_SBacklight;
 extern lv_obj_t * ui_LBacklight;
 extern lv_obj_t * ui_Arc1;
 extern lv_obj_t * ui_VBacklight;
+extern lv_obj_t * ui_LLoopTime;
+extern lv_obj_t * ui_LMilisTime;
+extern lv_obj_t * ui_VLoopTime;
+extern lv_obj_t * ui_VMilisTime;
 // CUSTOM VARIABLES
 
 #ifdef __cplusplus

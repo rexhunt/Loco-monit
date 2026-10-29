@@ -81,10 +81,10 @@ void sendI2CCommand(uint8_t command) {
   //  End transmission and return status
   error = Wire.endTransmission();
 
-  if (error == 0) {
+  if (error == 0) {/*
     Serial.print("command 0x");
     Serial.print(command, HEX);
-    Serial.println(" Sent successfully");
+    Serial.println(" Sent successfully");*/
   } else {
     Serial.print("Command sent error, error code:");
     Serial.println(error);

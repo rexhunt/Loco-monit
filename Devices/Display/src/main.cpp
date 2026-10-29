@@ -71,9 +71,9 @@ void loop() {
   loopCount += 1;
   //Serial.println(loopAverage);
   if (loopCount == 500) {
-    loopAverage = loopAverage / loopCount, millis();
+    loopAverage = loopAverage / loopCount;
     lv_label_set_text_fmt(ui_VLoopTime, "%li ms", loopAverage);
-    Serial.printf("Average time to run loop %lums at %lums\n", loopAverage);
+    Serial.printf("Average time to run loop %lums at %lums\n", loopAverage, millis());
     loopCount = 0;
     loopAverage = 0;
   }

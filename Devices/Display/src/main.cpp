@@ -16,7 +16,7 @@
 
 uint8_t button = BOOT_PIN;
 
-uint32_t loopTime, loopAverage;
+uint32_t loopTime, loopAverage, printTime;
 uint16_t loopCount = 0;
 
 // put function declarations here:
@@ -78,8 +78,12 @@ void loop() {
     loopAverage = 0;
   }
   
+
+  if (millis() - printTime >= 10){
+    lv_label_set_text_fmt(ui_VMilisTime, "%li ms", loopTime);
+    printTime = loopTime;
+  }
   loopTime = millis();
-  lv_label_set_text_fmt(ui_VMilisTime, "%li ms", loopTime);
 
   //Look for OTA
   ArduinoOTA.handle();

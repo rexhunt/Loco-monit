@@ -7,8 +7,8 @@
 #include "graphics.h"
 #include "ui.h"
 
-#define TX_GPIO 5   //GPIO pin connected to CAN Transciever TX Pin
-#define RX_GPIO 4   //GPIO pin connected to CAN Transciever RX Pin
+#define TX_GPIO 8   //GPIO pin connected to CAN Transciever TX Pin
+#define RX_GPIO 2   //GPIO pin connected to CAN Transciever RX Pin
 
 // Project libs
 #include "mon-OTA.h"          //OTA Functions
@@ -73,7 +73,7 @@ void loop() {
   if (loopCount == 500) {
     loopAverage = loopAverage / loopCount;
     lv_label_set_text_fmt(ui_VLoopTime, "%li ms", loopAverage);
-    Serial.printf("Average time to run loop %lums at %lums\n", loopAverage, millis());
+    //Serial.printf("Average time to run loop %lums at %lums\n", loopAverage, millis());
     loopCount = 0;
     loopAverage = 0;
   }
